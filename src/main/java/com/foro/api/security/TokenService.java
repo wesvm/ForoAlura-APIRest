@@ -6,7 +6,8 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
-import com.foro.api.models.User.User;
+import com.foro.api.models.User;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +21,8 @@ public class TokenService {
     @Value("${api.security.secret}")
     private String SECRET_KEY;
 
-    public String generateToken(User user){
-        try{
+    public String generateToken(User user) {
+        try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
             return JWT.create()
                     .withIssuer("FORO-ALURA")
@@ -29,7 +30,7 @@ public class TokenService {
                     .withClaim("id", user.getId())
                     .withExpiresAt(generateExpirationDate())
                     .sign(algorithm);
-        }catch (JWTCreationException e){
+        } catch (JWTCreationException e) {
             throw new RuntimeException("error creating token");
         }
     }
@@ -48,7 +49,7 @@ public class TokenService {
 
             DecodedJWT decodedJWT = jwtVerifier.verify(jwtToken);
 
-            if (decodedJWT.getSubject() == null){
+            if (decodedJWT.getSubject() == null) {
                 throw new RuntimeException("invalid token: missing subject.");
             }
             return decodedJWT.getSubject();

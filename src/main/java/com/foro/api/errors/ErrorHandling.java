@@ -11,19 +11,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ErrorHandling {
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity error404(){
+    public ResponseEntity<?> error404() {
         return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity error400(MethodArgumentNotValidException e){
+    public ResponseEntity<?> error400(MethodArgumentNotValidException e) {
         var errors = e.getFieldErrors().stream().map(dataErrorValidation::new).toList();
 
         return ResponseEntity.badRequest().body(errors);
     }
 
-    private record dataErrorValidation(String field, String error){
-        public dataErrorValidation(FieldError error){
+    private record dataErrorValidation(String field, String error) {
+        public dataErrorValidation(FieldError error) {
             this(error.getField(), error.getDefaultMessage());
         }
     }

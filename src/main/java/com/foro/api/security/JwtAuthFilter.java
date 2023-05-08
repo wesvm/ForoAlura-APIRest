@@ -1,12 +1,11 @@
 package com.foro.api.security;
 
-import com.foro.api.models.User.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,12 +16,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private TokenService tokenService;
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final TokenService tokenService;
+    private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -38,7 +36,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             if (subject != null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(subject);
-                // var user = userRepository.findByEmail(subject);
                 var authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
 
