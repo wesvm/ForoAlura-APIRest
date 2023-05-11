@@ -1,19 +1,22 @@
 package com.foro.api.controller;
 
-import com.foro.api.record.auth.DataAuthUser;
+import com.foro.api.record.auth.AuthRequest;
+import com.foro.api.record.auth.AuthResponse;
+import com.foro.api.record.error.ApiError;
 import com.foro.api.record.user.DataRegisterUser;
+import com.foro.api.record.user.DataResponseCreatedUser;
 import com.foro.api.record.user.DataResponseUser;
-import com.foro.api.models.User;
-import com.foro.api.repository.UserRepository;
-import com.foro.api.record.auth.DataJwtToken;
-import com.foro.api.security.TokenService;
+import com.foro.api.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,34 +30,76 @@ import java.net.URI;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final TokenService tokenService;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    @PostMapping
-    public ResponseEntity<?> authUser(
-            @RequestBody @Valid DataAuthUser dataAuthUser) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                dataAuthUser.email(), dataAuthUser.password());
-        var authenticatedUser = authenticationManager.authenticate(authentication);
-        var jwtToken = tokenService.generateToken((User) authenticatedUser.getPrincipal());
+    @Operation(
+            summary = "log in to the application",
+            description = "logs a user into the application",
+            security = @SecurityRequirement(name = "noAuth"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Authentication successful",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = AuthResponse.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Bad credentials",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiError.class))
+                    )
+            }
+    )
+    @SecurityRequirements()
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(
+            @RequestBody AuthRequest request) {
 
-        return ResponseEntity.ok(new DataJwtToken(jwtToken));
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.AUTHORIZATION, response.jwtToken()).body(response);
     }
 
+    @Operation(
+            summary = "register a new user",
+            description = "registers a new user with the application",
+            security = @SecurityRequirement(name = "noAuth"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "User created",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = DataResponseUser.class))),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Bad request",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiError.class))),
+                    @ApiResponse(
+                            responseCode = "409",
+                            description = "Conflict: email already taken",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiError.class)))
+            }
+    )
+    @SecurityRequirements()
     @PostMapping("/register")
-    public ResponseEntity<DataResponseUser> saveUser(
-            @RequestBody @Valid DataRegisterUser dataRegisterUser,
+    public ResponseEntity<DataResponseCreatedUser> saveUser(
+            @RequestBody @Valid DataRegisterUser request,
             UriComponentsBuilder uriComponentsBuilder) {
-        User user = userRepository.save(new User(dataRegisterUser, passwordEncoder));
-        var token = tokenService.generateToken(user);
-        DataResponseUser dataResponseUser = new DataResponseUser(
-                user.getId(), user.getName(), user.getEmail());
-        URI url = uriComponentsBuilder.path("/register/{id}").buildAndExpand(user.getId()).toUri();
+
+        DataResponseCreatedUser dataResponseUser = authService.register(request);
+
+        URI url = uriComponentsBuilder.path("/register/{id}").buildAndExpand(dataResponseUser.id()).toUri();
 
         return ResponseEntity.created(url)
-                .header("Authorization", "Bearer " + token)
+                .header("Authorization", "Bearer " + dataResponseUser.jwtToken())
                 .body(dataResponseUser);
     }
 }

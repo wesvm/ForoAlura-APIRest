@@ -5,6 +5,8 @@ import com.foro.api.record.user.DataListUser;
 import com.foro.api.record.user.DataResponseUser;
 import com.foro.api.repository.UserRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,10 @@ public class UserController {
 
     private final UserRepository userRepository;
 
+    @Operation(
+            summary = "gets a list of all users",
+            tags = {"user"}
+    )
     @GetMapping
     public Page<DataListUser> getAllUsers(
             @PageableDefault(size = 20) Pageable pageable) {
@@ -26,6 +32,10 @@ public class UserController {
         return users.map(DataListUser::new);
     }
 
+    @Operation(
+            summary = "gets a user by id",
+            tags = {"user"}
+    )
     @GetMapping("/{id}")
     public ResponseEntity<DataResponseUser> getUserById(
             @PathVariable Long id) {

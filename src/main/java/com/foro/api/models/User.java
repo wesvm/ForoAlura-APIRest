@@ -31,7 +31,7 @@ public class User implements UserDetails {
     private String email;
     private String password;
     @Enumerated(EnumType.STRING)
-    private UserRole userRole;
+    private UserRole role;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Topic> topics = new ArrayList<>();
@@ -43,12 +43,12 @@ public class User implements UserDetails {
         this.name = dataRegisterUser.name();
         this.email = dataRegisterUser.email();
         this.password = passwordEncoder.encode(dataRegisterUser.password());
-        this.userRole = UserRole.USER;
+        this.role = UserRole.USER;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(userRole.name()));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override

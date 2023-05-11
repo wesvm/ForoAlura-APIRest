@@ -1,6 +1,6 @@
 package com.foro.api.record.auth;
 
-public record DataAuthUser(
+public record AuthRequest(
         String email,
         String password
 ) {
