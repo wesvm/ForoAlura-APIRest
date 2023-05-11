@@ -4,7 +4,7 @@ Este proyecto es una API para el foro de Alura Latam.
 
 ## Tecnologias Usadas
 
-- Java
+- Java 19
 - Spring Security
 - Token JWT
 
