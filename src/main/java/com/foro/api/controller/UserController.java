@@ -1,12 +1,11 @@
 package com.foro.api.controller;
 
-import com.foro.api.models.User;
-import com.foro.api.record.user.DataListUser;
-import com.foro.api.record.user.DataResponseUser;
+import com.foro.api.model.User;
+import com.foro.api.model.dto.user.DataListUser;
+import com.foro.api.model.dto.user.DataResponseUser;
 import com.foro.api.repository.UserRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

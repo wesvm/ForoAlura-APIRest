@@ -1,11 +1,11 @@
 package com.foro.api.controller;
 
-import com.foro.api.record.auth.AuthRequest;
-import com.foro.api.record.auth.AuthResponse;
-import com.foro.api.record.error.ApiError;
-import com.foro.api.record.user.DataRegisterUser;
-import com.foro.api.record.user.DataResponseCreatedUser;
-import com.foro.api.record.user.DataResponseUser;
+import com.foro.api.model.dto.auth.AuthRequest;
+import com.foro.api.model.dto.auth.AuthResponse;
+import com.foro.api.model.dto.error.ApiError;
+import com.foro.api.model.dto.user.DataRegisterUser;
+import com.foro.api.model.dto.user.DataResponseCreatedUser;
+import com.foro.api.model.dto.user.DataResponseUser;
 import com.foro.api.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

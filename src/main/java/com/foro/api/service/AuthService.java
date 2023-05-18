@@ -1,13 +1,13 @@
 package com.foro.api.service;
 
 import com.foro.api.exception.DuplicateResourceException;
-import com.foro.api.models.User;
-import com.foro.api.record.auth.AuthRequest;
-import com.foro.api.record.auth.AuthResponse;
-import com.foro.api.record.user.DataRegisterUser;
-import com.foro.api.record.user.DataResponseCreatedUser;
+import com.foro.api.model.User;
+import com.foro.api.model.dto.auth.AuthRequest;
+import com.foro.api.model.dto.auth.AuthResponse;
+import com.foro.api.model.dto.user.DataRegisterUser;
+import com.foro.api.model.dto.user.DataResponseCreatedUser;
 import com.foro.api.repository.UserRepository;
-import com.foro.api.security.TokenService;
+import com.foro.api.security.jwt.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +22,7 @@ public class AuthService {
     private final TokenService tokenService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
     public AuthResponse login(AuthRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

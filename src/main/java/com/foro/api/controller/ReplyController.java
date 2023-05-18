@@ -1,19 +1,11 @@
 package com.foro.api.controller;
 
-import com.foro.api.record.error.DataResponseError;
-import com.foro.api.models.Reply;
-import com.foro.api.models.User;
-import com.foro.api.models.Topic;
-import com.foro.api.models.TopicStatus;
-import com.foro.api.record.reply.DataCreateReply;
-import com.foro.api.record.reply.DataResponseReply;
-import com.foro.api.record.reply.DataUpdateReply;
-import com.foro.api.record.user.DataResponseUser;
-import com.foro.api.repository.ReplyRepository;
-import com.foro.api.repository.TopicRepository;
-import com.foro.api.repository.UserRepository;
+import com.foro.api.model.dto.reply.DataCreateReply;
+import com.foro.api.model.dto.reply.DataResponseReply;
+import com.foro.api.model.dto.reply.DataUpdateReply;
 
-import jakarta.persistence.EntityNotFoundException;
+import com.foro.api.service.ReplyService;
+
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,85 +21,41 @@ import java.net.URI;
 @RequestMapping("/api/reply")
 @RequiredArgsConstructor
 public class ReplyController {
-
-    private final ReplyRepository replyRepository;
-    private final TopicRepository topicRepository;
-    private final UserRepository userRepository;
+    private final ReplyService replyService;
 
     @GetMapping("/{id}")
     public ResponseEntity<DataResponseReply> getReplyById(
             @PathVariable Long id) {
-        Reply reply = replyRepository.getReferenceById(id);
-
-        var author = new DataResponseUser(
-                reply.getAuthor().getId(), reply.getAuthor().getName(), reply.getAuthor().getEmail());
-
-        var dataReply = new DataResponseReply(
-                reply.getId(), reply.getMessage(), reply.getCreationDate().toString(), author,
-                reply.getSolution());
-
-        return ResponseEntity.ok(dataReply);
+        return ResponseEntity.ok(replyService.getById(id));
     }
 
     @PostMapping
-    public ResponseEntity<?> createReply(
+    public ResponseEntity<DataResponseReply> createReply(
             @Valid @RequestBody DataCreateReply dataCreateReply,
             Authentication authentication,
             UriComponentsBuilder uriComponentsBuilder) {
-        User author = userRepository.findById(dataCreateReply.authorId())
-                .orElseThrow(() -> new EntityNotFoundException("user not found"));
-        Topic topic = topicRepository.findById(dataCreateReply.topicId())
-                .orElseThrow(() -> new EntityNotFoundException("topic not found"));
 
-        if (topic.getTopicStatus() == TopicStatus.CLOSED || topic.getTopicStatus() == TopicStatus.SOLVED) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new DataResponseError(
-                            "topic is closed and no more replies can be added"));
-        }
+        var reply = replyService.create(dataCreateReply, authentication);
 
-        User authenticadedUser = (User) authentication.getPrincipal();
-        if (!dataCreateReply.authorId().equals(authenticadedUser.getId())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new DataResponseError("you are not allowed to create a reply"));
-        }
-
-        Reply reply = replyRepository.save(new Reply(dataCreateReply, author, topic));
-        topic.setTopicStatusNotSolved();
-        topicRepository.save(topic);
-
-        DataResponseReply dataResponseReply = new DataResponseReply(
-                reply.getId(), reply.getMessage(), reply.getCreationDate().toString(),
-                new DataResponseUser(
-                        reply.getAuthor().getId(), reply.getAuthor().getName(),
-                        reply.getAuthor().getEmail()),
-                reply.getSolution());
-
-        URI url = uriComponentsBuilder.path("/reply/{id}").buildAndExpand(reply.getId()).toUri();
-        return ResponseEntity.created(url).body(dataResponseReply);
+        URI url = uriComponentsBuilder.path("/reply/{id}").buildAndExpand(reply.id()).toUri();
+        return ResponseEntity.created(url).body(reply);
     }
 
     @PutMapping
     @Transactional
-    public ResponseEntity<?> updateReply(
+    public ResponseEntity<DataResponseReply> updateReply(
             @RequestBody @Valid DataUpdateReply dataUpdateReply,
             Authentication authentication) {
+        return ResponseEntity.ok(replyService.update(dataUpdateReply, authentication));
+    }
 
-        Reply reply = replyRepository.getReferenceById(dataUpdateReply.id());
-
-        User authenticadedUser = (User) authentication.getPrincipal();
-        if (!reply.getAuthor().equals(authenticadedUser)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new DataResponseError("you are not allowed to modify this reply"));
-        }
-
-        reply.updateReply(dataUpdateReply);
-        return ResponseEntity.ok(
-                new DataResponseReply(
-                        reply.getId(), reply.getMessage(), reply.getCreationDate().toString(),
-                        new DataResponseUser(
-                                reply.getAuthor().getId(), reply.getAuthor().getName(),
-                                reply.getAuthor().getEmail()),
-                        reply.getSolution()));
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> deleteReply(
+            @PathVariable Long id,
+            Authentication authentication){
+        replyService.delete(id, authentication);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 }
