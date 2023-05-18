@@ -25,4 +25,8 @@ Adicionalmente, se integró la documentación mediante swagger, la API está pro
 
 http://localhost:8080/swagger-ui/index.html - Link para ingresar a Swagger UI
 
+### Preview
+![image](https://github.com/wesvm/ForoAlura-APIRest/assets/76707027/55d0f179-7fda-418f-a33c-b31adaccdfc0)
+
+
 ![cms_files_10224_1673890737Prancheta_9](https://user-images.githubusercontent.com/76707027/236654191-cc167f20-851a-4cc7-b48b-0c9682911ef5.png)
