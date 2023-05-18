@@ -7,7 +7,7 @@ Este proyecto es una API para el foro de Alura Latam.
 - Java 17
 - Spring Security
 - Token JWT
-- SwaggerUI
+- SwaggerUI - OpenApi
 
 ## Funcionalidades
 
