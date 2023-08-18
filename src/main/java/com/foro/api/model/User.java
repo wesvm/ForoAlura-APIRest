@@ -38,7 +38,10 @@ public class User implements UserDetails {
     private List<Topic> topics = new ArrayList<>();
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Topic> replies = new ArrayList<>();
+    private List<Reply> replies = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Token> tokens;
 
     public User(DataRegisterUser dataRegisterUser, PasswordEncoder passwordEncoder) {
         this.name = dataRegisterUser.name();
@@ -47,9 +50,13 @@ public class User implements UserDetails {
         this.role = UserRole.USER;
     }
 
+    public void changeRole(UserRole newRole) {
+        this.role = newRole;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override

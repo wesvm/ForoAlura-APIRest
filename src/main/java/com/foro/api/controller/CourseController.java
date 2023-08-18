@@ -17,13 +17,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/course")
+@RequestMapping("/api/courses")
 @RequiredArgsConstructor
 public class CourseController {
 
@@ -49,6 +50,7 @@ public class CourseController {
         return ResponseEntity.ok(dataCourse);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<DataResponseCourse> createCourse(
             @Valid @RequestBody DataCreateCourse dataCreateCourse,
@@ -60,6 +62,7 @@ public class CourseController {
         return ResponseEntity.created(url).body(course);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping
     @Transactional
     public ResponseEntity<DataResponseCourse> updateCourse(
@@ -67,6 +70,7 @@ public class CourseController {
         return ResponseEntity.ok().body(courseService.update(dataUpdateCourse));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     @Transactional
     public ResponseEntity<?> deleteCourse(

@@ -4,7 +4,6 @@ import com.foro.api.model.dto.auth.AuthRequest;
 import com.foro.api.model.dto.auth.AuthResponse;
 import com.foro.api.model.dto.error.ApiError;
 import com.foro.api.model.dto.user.DataRegisterUser;
-import com.foro.api.model.dto.user.DataResponseCreatedUser;
 import com.foro.api.model.dto.user.DataResponseUser;
 import com.foro.api.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +12,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/auth")
@@ -60,7 +61,7 @@ public class AuthController {
 
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok()
-                .header(HttpHeaders.AUTHORIZATION, response.jwtToken()).body(response);
+                .header(HttpHeaders.AUTHORIZATION, response.accessToken(), response.refreshToken()).body(response);
     }
 
     @Operation(
@@ -90,16 +91,23 @@ public class AuthController {
     )
     @SecurityRequirements()
     @PostMapping("/register")
-    public ResponseEntity<DataResponseCreatedUser> saveUser(
+    public ResponseEntity<AuthResponse> saveUser(
             @RequestBody @Valid DataRegisterUser request,
             UriComponentsBuilder uriComponentsBuilder) {
 
-        DataResponseCreatedUser dataResponseUser = authService.register(request);
+        AuthResponse response = authService.register(request);
 
-        URI url = uriComponentsBuilder.path("/register/{id}").buildAndExpand(dataResponseUser.id()).toUri();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.AUTHORIZATION, response.accessToken(), response.refreshToken()).body(response);
 
-        return ResponseEntity.created(url)
-                .header("Authorization", "Bearer " + dataResponseUser.jwtToken())
-                .body(dataResponseUser);
     }
+
+    @PostMapping("/refresh-token")
+    public void refreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
+        authService.refreshToken(request, response);
+    }
+
 }

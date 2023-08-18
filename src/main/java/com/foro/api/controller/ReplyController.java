@@ -18,7 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/reply")
+@RequestMapping("/api/replies")
 @RequiredArgsConstructor
 public class ReplyController {
     private final ReplyService replyService;
